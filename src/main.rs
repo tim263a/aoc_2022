@@ -11,7 +11,10 @@ fn main() {
     // day02_01();
     // day02_02();
     // day03_01();
-    day03_02();
+    // day03_02();
+    // day04_01();
+    // day04_02();
+    day05_01();
 }
 
 fn day01() {
@@ -292,6 +295,191 @@ fn day03_02() {
         }).sum();
 
     println!("Result: {}", result);
+
+    let duration = start.elapsed();
+    println!("Time elapsed in main() is: {:?}", duration);
+}
+
+fn day04_01() {
+    let start = Instant::now();
+    let filepath = "inputs/day3_0.txt";
+    let content : String = fs::read_to_string(filepath)
+        .expect(format!("Could not read from input file '{}'", filepath).as_str());
+    println!("Size of '{}' is {} bytes", filepath, content.len());
+
+    let result : u32 = content.lines()
+        .map(|line| {
+            return line
+                .split(",")
+                .map(|pairing| {
+                    return pairing.split("-").collect::<Vec<&str>>();
+                })
+                .reduce(|accu, new| {
+                    let mut p1 = accu.clone();
+                    let mut p2 = new.clone();
+                    p1.append(&mut p2);
+                    return p1;
+                })
+                .unwrap();
+        })
+        .map(|pairings| {
+            return pairings.iter()
+                .map(|s| {
+                    return s.parse::<u32>().unwrap();
+                }).collect();
+        })
+        .map(|pairings : Vec<u32>| {
+            let result : u32;
+            if (pairings[0] <= pairings[2] && pairings[1] >= pairings[3]) ||
+                (pairings[2] <= pairings[0] && pairings[3] >= pairings[1]) {
+                result = 1;
+            } else {
+                result = 0;
+            }
+            println!("{} {} {} {} -> {}",
+                pairings[0], pairings[1], pairings[2], pairings[3], result);
+            return result;
+        }).sum();
+
+    println!("Result: {}", result);
+
+    let duration = start.elapsed();
+    println!("Time elapsed in main() is: {:?}", duration);
+}
+
+fn day04_02() {
+    let start = Instant::now();
+    let filepath = "inputs/day3_0.txt";
+    let content : String = fs::read_to_string(filepath)
+        .expect(format!("Could not read from input file '{}'", filepath).as_str());
+    println!("Size of '{}' is {} bytes", filepath, content.len());
+
+    let result : u32 = content.lines()
+        .map(|line| {
+            return line
+                .split(",")
+                .map(|pairing| {
+                    return pairing.split("-").collect::<Vec<&str>>();
+                })
+                .reduce(|accu, new| {
+                    let mut p1 = accu.clone();
+                    let mut p2 = new.clone();
+                    p1.append(&mut p2);
+                    return p1;
+                })
+                .unwrap();
+        })
+        .map(|pairings| {
+            return pairings.iter()
+                .map(|s| {
+                    return s.parse::<u32>().unwrap();
+                }).collect();
+        })
+        .map(|pairings : Vec<u32>| {
+            let result : u32;
+            if (pairings[0] >= pairings[2] && pairings[0] <= pairings[3]) ||
+                (pairings[1] >= pairings[2] && pairings[1] <= pairings[3]) ||
+                (pairings[2] >= pairings[0] && pairings[2] <= pairings[1]) ||
+                (pairings[3] >= pairings[0] && pairings[3] <= pairings[1]) {
+                result = 1;
+            } else {
+                result = 0;
+            }
+            println!("{} {} {} {} -> {}",
+                pairings[0], pairings[1], pairings[2], pairings[3], result);
+            return result;
+        }).sum();
+
+    println!("Result: {}", result);
+
+    let duration = start.elapsed();
+    println!("Time elapsed in main() is: {:?}", duration);
+}
+
+fn day05_01() {
+    let start = Instant::now();
+    let filepath = "inputs/day4_0.txt";
+    let content : String = fs::read_to_string(filepath)
+        .expect(format!("Could not read from input file '{}'", filepath).as_str());
+    println!("Size of '{}' is {} bytes", filepath, content.len());
+
+    let mut row_over_column : Vec<Vec<u8>> = Vec::new();
+    let mut n_columns = 0;
+
+    for line in content.lines() {
+        if line.len() == 0 || line.starts_with(" 1") {
+            break;
+        }
+
+        let mut row : Vec<u8> = Vec::new();
+        for i in 0..line.len() {
+            if (i % 4) == 1 {
+                row.push(line.as_bytes()[i]);
+                n_columns = n_columns.max(i / 4 + 1);
+            }
+        }
+        row_over_column.push(row);
+    }
+
+    println!("{}", n_columns);
+
+    let mut column_over_row : Vec<Vec<u8>> = Vec::new();
+    for i in 0..n_columns {
+        let mut column : Vec<u8> = Vec::new();
+        for row in row_over_column.iter() {
+            if i >= row.len() {
+                // column.push(0);
+            } else if row[i] != ' ' as u8 {
+                column.push(row[i]);
+            }
+        }
+        column.reverse();
+        column_over_row.push(column);
+    }
+
+    for column in &column_over_row {
+        println!("{}", String::from_utf8(column.to_vec()).unwrap());
+    }
+
+    for line in content.lines() {
+        if !line.starts_with("move") {
+            continue;
+        }
+
+        let mut line_split = line.split(" ");
+        let str_count : u8 = line_split.nth(1).unwrap().parse::<u8>().unwrap();
+        let str_src : u8 = line_split.nth(1).unwrap().parse::<u8>().unwrap() - 1;
+        let str_dst : u8 = line_split.nth(1).unwrap().parse::<u8>().unwrap() - 1;
+
+        println!("Move: {} {} {}", str_count, str_src, str_dst);
+        println!("Move: {} {} {}", str_count, str_src, str_dst);
+
+        /*
+        for _ in 0..str_count {
+            let popped = column_over_row[str_src as usize].pop().unwrap();
+            println!("{}", popped);
+            column_over_row[str_dst as usize].push(popped);
+        }
+        */
+
+        let mut stash = Vec::new();
+        for _ in 0..str_count {
+            let popped = column_over_row[str_src as usize].pop().unwrap();
+            stash.push(popped);
+        }
+
+        for _ in 0..str_count {
+            column_over_row[str_dst as usize].push(stash.pop().unwrap());
+        }
+    }
+
+    let result = column_over_row.iter()
+        .map(|column| {
+            return *column.last().unwrap();
+        })
+        .collect::<Vec<u8>>();
+
+    println!("Result: {}", String::from_utf8(result.to_vec()).unwrap());
 
     let duration = start.elapsed();
     println!("Time elapsed in main() is: {:?}", duration);
