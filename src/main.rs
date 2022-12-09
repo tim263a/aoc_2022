@@ -14,7 +14,9 @@ fn main() {
     // day03_02();
     // day04_01();
     // day04_02();
-    day05_01();
+    // day05_01();
+    // day09_01();
+    day09_02();
 }
 
 fn day01() {
@@ -480,6 +482,164 @@ fn day05_01() {
         .collect::<Vec<u8>>();
 
     println!("Result: {}", String::from_utf8(result.to_vec()).unwrap());
+
+    let duration = start.elapsed();
+    println!("Time elapsed in main() is: {:?}", duration);
+}
+
+#[derive(Clone, Eq, Hash, PartialEq)]
+struct Position {
+    x: i32,
+    y: i32,
+}
+
+fn day09_01() {
+    let start = Instant::now();
+    let filepath = "inputs/day9_0.txt";
+    let content : String = fs::read_to_string(filepath)
+        .expect(format!("Could not read from input file '{}'", filepath).as_str());
+    println!("Size of '{}' is {} bytes", filepath, content.len());
+
+    let mut visited : HashSet<Position> = HashSet::new();
+
+    let mut tail : Position = Position {
+        x: 0,
+        y: 0
+    };
+
+    let mut head : Position = Position {
+        x: 0,
+        y: 0
+    };
+
+    let mut update_tail = |head: &mut Position, tail: &mut Position| {
+        let d_x : i32 = head.x - tail.x;
+        let d_y: i32 = head.y - tail.y;
+
+        visited.insert(tail.clone());
+
+        if d_x.abs() >= 2 || d_y.abs() >= 2 {
+            tail.x += d_x.signum();
+            tail.y += d_y.signum();
+        }
+
+        visited.insert(tail.clone());
+    };
+
+    for line in content.lines() {
+        if line.is_empty() {
+            continue;
+        }
+
+        let mut iter_split = line.split(" ");
+        let str_direction = iter_split.nth(0).unwrap();
+        let str_count = iter_split.nth(0).unwrap();
+
+        let direction : (i32, i32) = match str_direction {
+            "U" => ( 0,  1),
+            "D" => ( 0, -1),
+            "L" => (-1,  0),
+            "R" => ( 1,  0),
+            _ => panic!("Invalid direction: {}", str_direction)
+        };
+
+        for i in 0..str_count.parse::<u32>().unwrap() {
+            head.x += direction.0;
+            head.y += direction.1;
+
+            update_tail(&mut head, &mut tail);
+
+            println!("{} {} {} {} {} {} {}",
+                str_direction, str_count, i,
+                head.x, head.y, tail.x, tail.y);
+        }
+    }
+
+    println!("Result: {}", visited.iter().count());
+
+    let duration = start.elapsed();
+    println!("Time elapsed in main() is: {:?}", duration);
+}
+
+fn day09_02() {
+    let start = Instant::now();
+    let filepath = "inputs/day9_0.txt";
+    let content : String = fs::read_to_string(filepath)
+        .expect(format!("Could not read from input file '{}'", filepath).as_str());
+    println!("Size of '{}' is {} bytes", filepath, content.len());
+
+    let mut visited : HashSet<Position> = HashSet::new();
+
+    let mut tail : Vec<Position> = Vec::new();
+
+    for i in 0..9 {
+        tail.push(Position {
+            x: 0,
+            y: 0
+        });
+    }
+
+    let mut head : Position = Position {
+        x: 0,
+        y: 0
+    };
+
+    let update_tail = |head: &mut Position, tail: &mut Position| {
+        let d_x : i32 = head.x - tail.x;
+        let d_y: i32 = head.y - tail.y;
+
+        if d_x.abs() >= 2 || d_y.abs() >= 2 {
+            tail.x += d_x.signum();
+            tail.y += d_y.signum();
+        }
+    };
+
+    for line in content.lines() {
+        if line.is_empty() {
+            continue;
+        }
+
+        let mut iter_split = line.split(" ");
+        let str_direction = iter_split.nth(0).unwrap();
+        let str_count = iter_split.nth(0).unwrap();
+
+        let direction : (i32, i32) = match str_direction {
+            "U" => ( 0,  1),
+            "D" => ( 0, -1),
+            "L" => (-1,  0),
+            "R" => ( 1,  0),
+            _ => panic!("Invalid direction: {}", str_direction)
+        };
+
+        for i in 0..str_count.parse::<u32>().unwrap() {
+            head.x += direction.0;
+            head.y += direction.1;
+
+            visited.insert(tail.last().unwrap().clone());
+
+            update_tail(&mut head, &mut tail[0]);
+
+            for j in 0..tail.len() - 1 {
+                let mut it = tail.iter_mut();
+                let mut tail_0 = it.nth(j).unwrap();
+                let mut tail_1 = it.nth(0).unwrap();
+
+                update_tail(&mut tail_0, &mut tail_1);
+            }
+
+            visited.insert(tail.last().unwrap().clone());
+
+            println!("{} {} {} {} {} {} {}",
+                str_direction, str_count, i,
+                head.x, head.y, tail.last().unwrap().x, tail.last().unwrap().y);
+
+            for element in tail.clone() {
+                println!("{} {}", element.x, element.y);
+            }
+        }
+    }
+
+    println!("Result: {}", visited.iter().count());
 
     let duration = start.elapsed();
     println!("Time elapsed in main() is: {:?}", duration);
