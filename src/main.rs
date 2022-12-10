@@ -16,7 +16,8 @@ fn main() {
     // day04_02();
     // day05_01();
     // day09_01();
-    day09_02();
+    // day09_02();
+    day10_02();
 }
 
 fn day01() {
@@ -640,6 +641,131 @@ fn day09_02() {
     }
 
     println!("Result: {}", visited.iter().count());
+
+    let duration = start.elapsed();
+    println!("Time elapsed in main() is: {:?}", duration);
+}
+
+fn day10_01() {
+    let start = Instant::now();
+    let filepath = "inputs/day10_0.txt";
+    let content : String = fs::read_to_string(filepath)
+        .expect(format!("Could not read from input file '{}'", filepath).as_str());
+    println!("Size of '{}' is {} bytes", filepath, content.len());
+
+    let mut value_x : i32 = 1;
+    let mut cycle : u32 = 0;
+
+    let mut signal_strengths : Vec<(u32, i32)> = Vec::new();
+
+    let mut next_cycle = |value_x : &mut i32, cycle : &mut u32, count: u32| {
+        for _ in 0..count {
+            *cycle += 1;
+            if *cycle % 40 == 20 {
+                signal_strengths.push((*cycle, *value_x));
+            }
+        }
+    };
+
+    for line in content.lines() {
+        let mut iter_split = line.split(" ").into_iter();
+        let str_command : &str = iter_split.nth(0).unwrap();
+
+        println!("{}", str_command);
+
+        if str_command == "noop" {
+            next_cycle(&mut value_x, &mut cycle, 1);
+        } else if str_command == "addx" {
+            let str_count : &str = iter_split.nth(0).unwrap();
+            let count : i32 = str_count.parse().unwrap();
+
+            next_cycle(&mut value_x, &mut cycle, 2);
+            value_x += count;
+        }
+    }
+
+    let mut result : i32 = 0;
+
+    for signal_strength in signal_strengths {
+        println!("{} {}", signal_strength.0, signal_strength.1);
+        result += signal_strength.0 as i32 * signal_strength.1;
+    }
+
+    println!("Result: {}", result);
+
+    let duration = start.elapsed();
+    println!("Time elapsed in main() is: {:?}", duration);
+}
+
+fn day10_02() {
+    let start = Instant::now();
+    let filepath = "inputs/day10_0.txt";
+    let content : String = fs::read_to_string(filepath)
+        .expect(format!("Could not read from input file '{}'", filepath).as_str());
+    println!("Size of '{}' is {} bytes", filepath, content.len());
+
+    const WIDTH : u32 = 40;
+    const HEIGHT : u32 = 6;
+    const SCREEN_SIZE : usize = (WIDTH * HEIGHT) as usize;
+
+    let mut screen : [bool; SCREEN_SIZE] = [false; SCREEN_SIZE];
+
+    let mut value_x : i32 = 1;
+    let mut cycle : u32 = 0;
+
+    let print_screen = |screen : [bool; SCREEN_SIZE]| {
+        for row in 0..HEIGHT {
+            print!("{} ", row);
+            for column in 0..WIDTH {
+                if screen[(row * WIDTH + column) as usize] {
+                    print!("X");
+                } else {
+                    print!(".");
+                }
+            }
+            println!();
+        }
+    };
+
+    let mut set_pixel = |value_x : &mut i32, cycle : &mut u32| {
+        if *cycle < 1 || *cycle as usize > SCREEN_SIZE {
+            return;
+        }
+
+        // Shadow cycle, there is a offset somewhere
+        let cycle : u32 = *cycle - 1;
+
+        let column : i32 = (cycle % WIDTH) as i32;
+        screen[cycle as usize] = *value_x >= column - 1 && *value_x <= column + 1;
+
+        println!("{} {} {} {}", cycle, value_x, column, screen[cycle as usize]);
+
+        print_screen(screen);
+    };
+
+    let mut next_cycle = |value_x : &mut i32, cycle : &mut u32, count: u32| {
+        for _ in 0..count {
+            *cycle += 1;
+            set_pixel(value_x, cycle);
+        }
+    };
+
+    for line in content.lines() {
+        let mut iter_split = line.split(" ").into_iter();
+        let str_command : &str = iter_split.nth(0).unwrap();
+
+        if str_command == "noop" {
+            next_cycle(&mut value_x, &mut cycle, 1);
+        } else if str_command == "addx" {
+            let str_count : &str = iter_split.nth(0).unwrap();
+            let count : i32 = str_count.parse().unwrap();
+
+            next_cycle(&mut value_x, &mut cycle, 2);
+            value_x += count;
+        }
+    }
+
+    println!("Cycles: {}", cycle);
 
     let duration = start.elapsed();
     println!("Time elapsed in main() is: {:?}", duration);
